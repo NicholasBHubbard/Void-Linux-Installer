@@ -6,13 +6,13 @@
 
 ### INIT ###
 
-# EXIT ON ANY ERROR
-set -e
-
+# USER VARIABLES
 #DISK_NAME=/dev/sda
 #DISK_NAME=/dev/nvme0n1
-
 #HOSTNAME=voidmachine
+
+# EXIT ON ANY ERROR
+set -e
 
 if [[ -z $DISK_NAME ]]; then
     >2 echo void-installer: variable DISK_NAME not set. See this script and output of lsblk.
