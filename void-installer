@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# WARNING. THIS SCRIPT IS "EXTREMELY" DESTRUCTIVE. THATS THE POINT.
+#
+# IF YOU WANT TO DO DIFFERENT THINGS THEN YOURE GONNA HAVE TO EDIT THE CODE.
+
+### INIT ###
+
+# EXIT ON ANY ERROR
+set -e
+
+#DISK_NAME=/dev/sda
+#DISK_NAME=/dev/nvme0n1
+
+#HOSTNAME=voidmachine
+
+if [[ -z $DISK_NAME ]]; then
+    >2 echo void-installer: variable DISK_NAME not set. See this script and output of lsblk.
+    exit 1
+elif [[ $DISK_NAME =~ nvme ]]
+    DISK_NAME=$DISK_NAMEp # makes specifying partitions seamless
+fi
+
+if [[ -z $DISK_NAME ]]; then
+    >2 echo void-installer: variable HOSTNAME not set. This is like the name of your computer.
+    exit 1
+fi
+
+# THIS REPO SHOULD JUST WORK
+REPO=https://repo-fastly.voidlinux.org/current
+
+# WHATEVER PACKAGES YOU WANT AVAILABLE ON FIRST BOOT
+#EXTRA_PACKAGES=(vim grub-x86_64-efi xorg xfce4 xfce4-whiskermenu-plugin)
+
+# FROM STACK OVERFLOW https://stackoverflow.com/a/246128
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+# WORK FROM FS ROOT
+cd /
+
+# OVERWRITE ENTIRE DISK WITH RANDOM DATA. THIS COULD TAKE A WHILE.
+#dd if=/dev/urandom of=$DISK_NAME
+
+### SETUP INSTALL ###
+
+# CREATE TWO PARTITIONS, ONE FOR EFI, ONE FOR OS
+(
+echo g
+echo n
+echo
+echo +512M
+echo n
+echo
+echo
+echo w
+) | fdisk $(echo $DISK_NAME | awk '/nvme/ {sub(/.$/,"");print}')
+
+# THE EFI PARTITION GETS A FAT32 FS
+mkfs.vfat -F32 $DISK_NAME1
+
+# "THE" BTRFS OPTIONS
+BTRFS_OPTS=rw,noatime,compress=zstd,space_cache=v2,commit=120
+
+# ENCRYPT ROOT PARTITION
+cryptsetup luksFormat --type=luks2 -s=512 /dev/nvme0n1p2
+
+# OPEN ENCRYPTED ROOT
+cryptsetup luksOpen /dev/nvme0n1p2 cryptroot
+
+# THE MAPPED FS GETS FORMATTED WITH BTRFS <-- is this terminology correct?
+mkfs.btrfs /dev/mapper/cryptroot
+
+# WE CAN JUST USE /mnt
+mount -o $BTRFS_OPTS /dev/mapper/cryptroot /mnt
+
+# THE TOPLEVEL SUBVOLUMES
+btrfs subvolume create /mnt/@
+btrfs subvolume create /mnt/@var
+btrfs subvolume create /mnt/@snapshots
+
+# MOUNT THE ROOT SUBVOLUME AT /mnt
+umount /mnt
+mount -o $BTRFS_OPTS,subvol=@ /dev/mapper/cryptroot /mnt
+
+# BASIC SETUP
+mkdir /mnt/boot
+mkdir /mnt/var
+mkdir /mnt/.snapshots
+mount -o rw,noatime $DISK_NAME1 /mnt/boot
+mount -o $BTRFS_OPTS,subvol=@var /mnt/var
+mount -o $BTRFS_OPTS,subvol=@snapshots /mnt/.snapshots
+
+btrfs subvolume create /mnt/srv # get this out of the way
+
+### BASE INSTALLATION ###
+
+# DO THE BASE INSTALL
+XBPS_ARCH=x86_64 xbps-install -S -y -R $REPO -r /mnt base-system btrfs-progs cryptsetup ${EXTRA_PACKAGES[@]}
+
+# CHROOT
+for dir in dev proc sys run; do
+    mount --rbind /$dir /mnt/$dir
+    mount --make-rslave /mnt/$dir
+done
+cp /etc/resolv.conf /mnt/etc
+HOSTNAME=$HOSTNAME BTRFS_OPTS=$BTRFS_OPTS DISK_NAME=$DISK_NAME SCRIPT_DIR=$SCRIPT_DIR \
+    chroot /mnt /bin/bash $SCRIPT_DIR/void-installer-post-chroot
+
+# SUCCESS
+echo All Good! You can reboot.
