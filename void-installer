@@ -19,7 +19,7 @@ elif [[ $DISK_NAME =~ nvme ]]
 fi
 
 if [[ -z $DISK_NAME ]]; then
-    >2 echo void-installer: variable HOSTNAME not set. This is like the name of your computer.
+    >2 echo void-installer: variable HOSTNAME not set. This variable is name of your computer.
     exit 1
 fi
 
