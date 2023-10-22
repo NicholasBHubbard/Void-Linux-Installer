@@ -11,9 +11,6 @@
 #DISK_NAME=/dev/nvme0n1
 #HOSTNAME=voidmachine
 
-# EXIT ON ANY ERROR
-set -e
-
 if [[ -z $DISK_NAME ]]; then
     >2 echo void-installer: variable DISK_NAME not set. See this script and output of lsblk.
     exit 1
@@ -25,6 +22,9 @@ if [[ -z $DISK_NAME ]]; then
     >2 echo void-installer: variable HOSTNAME not set. This is like the name of your computer.
     exit 1
 fi
+
+# EXIT ON ANY ERROR
+set -e
 
 # THIS REPO SHOULD JUST WORK
 REPO=https://repo-fastly.voidlinux.org/current
