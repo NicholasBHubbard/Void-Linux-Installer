@@ -15,7 +15,7 @@
 if [[ -z $DISK_NAME ]]; then
     >2 echo void-installer: variable DISK_NAME not set. See this script and output of lsblk.
     exit 1
-elif [[ $DISK_NAME =~ nvme ]]
+elif [[ $DISK_NAME =~ nvme ]]; then
     DISK_NAME=$DISK_NAMEp # makes specifying partitions seamless
 fi
 
