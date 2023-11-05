@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# WARNING. THIS SCRIPT IS "EXTREMELY" DESTRUCTIVE. THATS THE POINT.
+# WARNING: THIS SCRIPT IS "EXTREMELY" DESTRUCTIVE. THATS THE POINT.
 #
 # IF YOU WANT TO DO DIFFERENT THINGS THEN YOURE GONNA HAVE TO EDIT THE CODE.
 
@@ -9,14 +9,16 @@
 # USER VARIABLES
 #DISK_NAME=/dev/sda
 #DISK_NAME=/dev/nvme0n1
+#DISK_NAME=/dev/mmcblk0
 #HOSTNAME=voidmachine
 
 # REVIEW THE OUTPUT OF lsblk TO DETERMINE YOUR DISK NAME
 if [[ -z $DISK_NAME ]]; then
     >&2 echo void-installer: variable DISK_NAME not set. See this script and output of lsblk.
     exit 1
-elif [[ $DISK_NAME =~ nvme ]]; then
-    DISK_NAME=$DISK_NAMEp # makes specifying partitions seamless
+elif [[ -z $HOSTNAME ]]; then
+    >&2 echo void-installer: variable HOSTNAME not set. See this script.
+    exit 1
 fi
 
 if [[ -z $DISK_NAME ]]; then
@@ -45,7 +47,7 @@ cd /
 ### SETUP INSTALL ###
 
 # CREATE TWO PARTITIONS, ONE FOR EFI, ONE FOR OS
-fdisk $(echo $DISK_NAME | awk '{if (/nvme/) {sub(/.$/,"");print} else {print}}') << EOF
+fdisk $DISK_NAME << EOF
 g
 n
 
@@ -58,17 +60,26 @@ n
 w
 EOF
 
+# FOR EASY PARTITION NAMING
+if [[ $DISK_NAME =~ nvme|mmcblk ]]; then
+    $UEFI_PART=${DISK_NAME}p1
+    $ROOT_PART=${DISK_NAME}p2
+else
+    $UEFI_PART=${DISK_NAME}1
+    $ROOT_PART=${DISK_NAME}2
+fi
+
 # THE EFI PARTITION GETS A FAT32 FS
-mkfs.vfat -F32 ${DISK_NAME}1
+mkfs.vfat -F32 $UEFI_PART
 
 # "THE" BTRFS OPTIONS
 BTRFS_OPTS=rw,noatime,compress=zstd,space_cache=v2,commit=120
 
 # ENCRYPT ROOT PARTITION
-cryptsetup luksFormat --type=luks2 -s=512 /dev/nvme0n1p2
+cryptsetup luksFormat --type=luks2 -s=512 $ROOT_PART
 
 # OPEN ENCRYPTED ROOT
-cryptsetup luksOpen /dev/nvme0n1p2 cryptroot
+cryptsetup luksOpen $ROOT_PART cryptroot
 
 # THE MAPPED FS GETS FORMATTED WITH BTRFS <-- is this terminology correct?
 mkfs.btrfs /dev/mapper/cryptroot
@@ -89,7 +100,7 @@ mount -o $BTRFS_OPTS,subvol=@ /dev/mapper/cryptroot /mnt
 mkdir /mnt/boot
 mkdir /mnt/var
 mkdir /mnt/.snapshots
-mount -o rw,noatime ${DISK_NAME}1 /mnt/boot
+mount -o rw,noatime $UEFI_PART /mnt/boot
 mount -o $BTRFS_OPTS,subvol=@var /mnt/var
 mount -o $BTRFS_OPTS,subvol=@snapshots /mnt/.snapshots
 
@@ -106,7 +117,7 @@ for dir in dev proc sys run; do
     mount --make-rslave /mnt/$dir
 done
 cp /etc/resolv.conf /mnt/etc
-HOSTNAME=$HOSTNAME BTRFS_OPTS=$BTRFS_OPTS DISK_NAME=$DISK_NAME SCRIPT_DIR=$SCRIPT_DIR \
+HOSTNAME=$HOSTNAME BTRFS_OPTS=$BTRFS_OPTS DISK_NAME=$DISK_NAME UEFI_PART=$UEFI_PART ROOT_PART=$ROOT_PART SCRIPT_DIR=$SCRIPT_DIR \
     chroot /mnt /bin/bash $SCRIPT_DIR/void-installer-post-chroot
 
 # SUCCESS
