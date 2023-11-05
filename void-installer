@@ -56,7 +56,7 @@ echo
 echo
 echo
 echo w
-) sfdisk $(echo $DISK_NAME | awk '/nvme/ {sub(/.$/,"");print}')
+) | fdisk $(echo $DISK_NAME | awk '/nvme/ {sub(/.$/,"");print}')
 
 # THE EFI PARTITION GETS A FAT32 FS
 mkfs.vfat -F32 $DISK_NAME1
