@@ -45,7 +45,7 @@ cd /
 ### SETUP INSTALL ###
 
 # CREATE TWO PARTITIONS, ONE FOR EFI, ONE FOR OS
-fdisk $(echo $DISK_NAME | awk '{if (/nvme/) {sub(/.$/,"");print} else {print}}' << EOF
+fdisk $(echo $DISK_NAME | awk '{if (/nvme/) {sub(/.$/,"");print} else {print}}') << EOF
 g
 n
 
@@ -59,7 +59,7 @@ w
 EOF
 
 # THE EFI PARTITION GETS A FAT32 FS
-mkfs.vfat -F32 $DISK_NAME1
+mkfs.vfat -F32 ${DISK_NAME}1
 
 # "THE" BTRFS OPTIONS
 BTRFS_OPTS=rw,noatime,compress=zstd,space_cache=v2,commit=120
@@ -89,7 +89,7 @@ mount -o $BTRFS_OPTS,subvol=@ /dev/mapper/cryptroot /mnt
 mkdir /mnt/boot
 mkdir /mnt/var
 mkdir /mnt/.snapshots
-mount -o rw,noatime $DISK_NAME1 /mnt/boot
+mount -o rw,noatime ${DISK_NAME}1 /mnt/boot
 mount -o $BTRFS_OPTS,subvol=@var /mnt/var
 mount -o $BTRFS_OPTS,subvol=@snapshots /mnt/.snapshots
 
