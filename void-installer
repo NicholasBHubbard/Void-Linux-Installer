@@ -13,14 +13,14 @@
 
 # REVIEW THE OUTPUT OF lsblk TO DETERMINE YOUR DISK NAME
 if [[ -z $DISK_NAME ]]; then
-    >2 echo void-installer: variable DISK_NAME not set. See this script and output of lsblk.
+    >&2 echo void-installer: variable DISK_NAME not set. See this script and output of lsblk.
     exit 1
 elif [[ $DISK_NAME =~ nvme ]]; then
     DISK_NAME=$DISK_NAMEp # makes specifying partitions seamless
 fi
 
 if [[ -z $DISK_NAME ]]; then
-    >2 echo void-installer: variable HOSTNAME not set. This variable is name of your computer.
+    >&2 echo void-installer: variable HOSTNAME not set. This variable is name of your computer.
     exit 1
 fi
 
