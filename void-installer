@@ -45,7 +45,7 @@ cd /
 ### SETUP INSTALL ###
 
 # CREATE TWO PARTITIONS, ONE FOR EFI, ONE FOR OS
-fdisk $(echo $DISK_NAME | awk '/nvme/ {sub(/.$/,"");print}') << EOF
+fdisk $(echo $DISK_NAME | awk '{if (/nvme/) {sub(/.$/,"");print} else {print}}' << EOF
 g
 n
 
