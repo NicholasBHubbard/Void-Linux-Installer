@@ -75,11 +75,14 @@ mkfs.vfat -F32 $UEFI_PART
 # "THE" BTRFS OPTIONS
 BTRFS_OPTS=rw,noatime,compress=zstd,space_cache=v2,commit=120
 
+# GET ENCRYPTION PASSPHRASE FROM USER
+read -s -p "void-installer: enter disk encryption passphrase: " PASSPHRASE
+
 # ENCRYPT ROOT PARTITION
-cryptsetup luksFormat --type=luks2 -s=512 $ROOT_PART
+echo "$PASSPHRASE" | cryptsetup -q luksFormat --type=luks -s=512 $ROOT_PART
 
 # OPEN ENCRYPTED ROOT
-cryptsetup luksOpen $ROOT_PART cryptroot
+echo "$PASSPHRASE" | cryptsetup luksOpen $ROOT_PART cryptroot
 
 # THE MAPPED FS GETS FORMATTED WITH BTRFS <-- is this terminology correct?
 mkfs.btrfs /dev/mapper/cryptroot
