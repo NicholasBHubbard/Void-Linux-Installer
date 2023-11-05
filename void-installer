@@ -11,6 +11,7 @@
 #DISK_NAME=/dev/nvme0n1
 #HOSTNAME=voidmachine
 
+# REVIEW THE OUTPUT OF lsblk TO DETERMINE YOUR DISK NAME
 if [[ -z $DISK_NAME ]]; then
     >2 echo void-installer: variable DISK_NAME not set. See this script and output of lsblk.
     exit 1
