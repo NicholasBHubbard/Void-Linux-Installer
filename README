@@ -1,7 +1,7 @@
 a Void Linux installer
 
 ```
-$ xbps-install -Su xbps git
+$ xbps-install -Syu xbps git
 $ git clone https://github.com/NicholasBHubbard/Void-Linux-Installer
 $ cd Void-Linux-Installer
 $ ./void-installer
