@@ -20,5 +20,4 @@ xbps-install -Sy void-repo-nonfree
 xbps-install -Sy intel-ucode
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="Void Linux"
 xbps-reconfigure -fa
-echo root password:
 passwd root
