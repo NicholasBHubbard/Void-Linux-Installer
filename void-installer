@@ -104,8 +104,8 @@ mkdir /mnt/boot
 mkdir /mnt/var
 mkdir /mnt/.snapshots
 mount -o rw,noatime $UEFI_PART /mnt/boot
-mount -o $BTRFS_OPTS,subvol=@var /mnt/var
-mount -o $BTRFS_OPTS,subvol=@snapshots /mnt/.snapshots
+mount -o $BTRFS_OPTS,subvol=@var /dev/mapper/cryptroot /mnt/var
+mount -o $BTRFS_OPTS,subvol=@snapshots /dev/mapper/cryptroot /mnt/.snapshots
 
 btrfs subvolume create /mnt/srv # get this out of the way
 

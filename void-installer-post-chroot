@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # THIS SCRIPT IS INVOKED BY void-installer AS "THE" CHROOT SCRIPT. THE RANDOM
-# VARIABLES THAT ARE IN THIS SCRIPT COME FROM THE INVOCANT SCRIPT.
+# VARIABLES THAT ARE EXPORTED HERE FROM THE void-installer SCRIPT.
 
-UEFI_UUID=$(blkid -s UUID -o value /dev/sda1)
+UEFI_UUID=$(blkid -s UUID -o value $UEFI_PART)
 ROOT_UUID=$(blkid -s UUID -o value /dev/mapper/cryptroot)
 awk -i inplace 'en_US-UTF-8 {sub(/^#/,"")}; print' /etc/default/libc-locales
 xbps-reconfigure -f glibc-locales
@@ -15,7 +15,7 @@ UUID=$ROOT_UUID /.snapshots btrfs $BTRFS_OPTS,subvol=@snapshots 0 2
 tmpfs /tmp tmpfs defaults,nosuid,nodev 0 0
 EOF
 echo hostonly=yes >> /etc/dracut.conf
-xbps-install -Syu void-repo-nonfree
+xbps-install -Sy void-repo-nonfree
 xbps-install -Sy intel-ucode
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="Void Linux"
 xbps-reconfigure -fa
