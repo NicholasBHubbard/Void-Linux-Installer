@@ -3,6 +3,7 @@
 # THIS SCRIPT IS INVOKED BY void-installer AS "THE" CHROOT SCRIPT. THE RANDOM
 # VARIABLES THAT ARE EXPORTED HERE FROM THE void-installer SCRIPT.
 
+set -e
 UEFI_UUID=$(blkid -s UUID -o value $UEFI_PART)
 ROOT_UUID=$(blkid -s UUID -o value /dev/mapper/cryptroot)
 awk -i inplace 'en_US-UTF-8 {sub(/^#/,"")}; print' /etc/default/libc-locales
