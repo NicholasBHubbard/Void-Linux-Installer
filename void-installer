@@ -120,8 +120,10 @@ for dir in dev proc sys run; do
     mount --make-rslave /mnt/$dir
 done
 cp /etc/resolv.conf /mnt/etc
+cp $SCRIPT_DIR/void-installer-chroot /mnt/void-installer-chroot
 HOSTNAME=$HOSTNAME BTRFS_OPTS=$BTRFS_OPTS DISK_NAME=$DISK_NAME UEFI_PART=$UEFI_PART ROOT_PART=$ROOT_PART SCRIPT_DIR=$SCRIPT_DIR \
-    chroot /mnt $SCRIPT_DIR/void-installer-chroot
+    chroot /mnt /void-installer-chroot
+rm /mnt/void-installer-chroot
 
 # SUCCESS
 echo All Good! You can reboot.
