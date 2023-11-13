@@ -1,13 +1,18 @@
 #!/bin/bash
 
 # THIS SCRIPT IS INVOKED BY void-installer AS "THE" CHROOT SCRIPT. THE RANDOM
-# VARIABLES THAT ARE EXPORTED HERE FROM THE void-installer SCRIPT.
+# VARIABLES THAT ARE EXPORTED HERE COME FROM THE void-installer SCRIPT.
 
+# EXIT ON ANY ERROR
 set -e
-UEFI_UUID=$(blkid -s UUID -o value $UEFI_PART)
-ROOT_UUID=$(blkid -s UUID -o value /dev/mapper/cryptroot)
+
+# USE ENGLISH UTF-8 ENCODING
 sed -i '/en_US-UTF-8/s/^#//g' /etc/default/libc-locales
 xbps-reconfigure -f glibc-locales
+
+# WRITE THE FSTAB
+UEFI_UUID=$(blkid -s UUID -o value $UEFI_PART)
+ROOT_UUID=$(blkid -s UUID -o value /dev/mapper/cryptroot)
 cat <<EOF > /etc/fstab
 UUID=$ROOT_UUID / btrfs $BTRFS_OPTS,subvol=@ 0 1
 UUID=$UEFI_UUID /boot vfat defaults,noatime 0 2
@@ -15,9 +20,16 @@ UUID=$ROOT_UUID /var btrfs $BTRFS_OPTS,subvol=@var 0 2
 UUID=$ROOT_UUID /.snapshots btrfs $BTRFS_OPTS,subvol=@snapshots 0 2
 tmpfs /tmp tmpfs defaults,nosuid,nodev 0 0
 EOF
+
+# SOME MORE STUFF WE NEED
+xbps-install -Sy void-repo-nonfree # we need this for intel-ucode
+xbps-install -Sy intel-ucode
+
+# SETUP BOOTLOADER AND INITRD
+xbps-install -Sy grub-x86_64-efi
 echo hostonly=yes >> /etc/dracut.conf
-xbps-install -Sy void-repo-nonfree
-xbps-install -Sy intel-ucode grub-x86_64-efi
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id="Void Linux"
 xbps-reconfigure -fa
+
+# SET THE ROOT PASSWORD
 passwd root
