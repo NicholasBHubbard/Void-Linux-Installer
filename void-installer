@@ -33,7 +33,7 @@ set -e
 REPO=https://repo-fastly.voidlinux.org/current
 
 # WHATEVER PACKAGES YOU WANT AVAILABLE ON FIRST BOOT
-#EXTRA_PACKAGES=(vim grub-x86_64-efi xorg xfce4 xfce4-whiskermenu-plugin)
+#EXTRA_PACKAGES=(vim xorg NetworkManager)
 
 # FROM STACK OVERFLOW https://stackoverflow.com/a/246128
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
