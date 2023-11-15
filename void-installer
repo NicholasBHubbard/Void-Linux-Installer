@@ -87,7 +87,7 @@ echo "$PASSPHRASE" | cryptsetup luksOpen $ROOT_PART cryptroot
 # THE MAPPED FS GETS FORMATTED WITH BTRFS <-- is this terminology correct?
 mkfs.btrfs /dev/mapper/cryptroot
 
-# WE CAN JUST USE /mnt
+# MOUNT THE FS AT /mnt
 mount -o $BTRFS_OPTS /dev/mapper/cryptroot /mnt
 
 # THE TOPLEVEL SUBVOLUMES
