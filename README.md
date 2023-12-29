@@ -2,7 +2,7 @@ A Void Linux installer for a luks encrypted btrfs root partition.
 
 This script is very destructive. Only use after reading and understanding the code. Some human interaction is required.
 
-Heavily inspired by [gbrlsnchs's guide](https://gist.github.com/gbrlsnchs/9c9dc55cd0beb26e141ee3ea59f26e21)
+Heavily inspired by [gbrlsnchs's guide](https://gist.github.com/gbrlsnchs/9c9dc55cd0beb26e141ee3ea59f26e21).
 
 # INSTRUCTIONS
 
